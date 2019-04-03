@@ -313,6 +313,12 @@ def multiply(num1_dir, num2_dir, digits):
 
 
 def action():
+    temp = result['text']
+    if temp != 'Ответ' and repeat.get() == 1:
+        sys1Scale.set(resScale.get())
+        num1.delete(0, END)
+        num1.insert(0, result['text'])
+
     sys1 = sys1Scale.get()          #int
     sys2 = sys2Scale.get()          #int
     sysRes = resScale.get()         #int
@@ -356,9 +362,9 @@ def action():
         resultDir = addictional(to_reversed(resultAddict))
         resultBin = dir_to_bin(resultDir)
         resultDec = any_to_decimal(resultBin, 2)
-        result = decimal_to_any(resultDec, sysRes)
+        resultAny = decimal_to_any(resultDec, sysRes)
 
-        res.set(result)
+        result['text'] = resultAny
 
     elif op.get() == 1:  # radio 1 = minus
         digits = 0
@@ -395,9 +401,9 @@ def action():
         resultDir = addictional(to_reversed(resultAddict))
         resultBin = dir_to_bin(resultDir)
         resultDec = any_to_decimal(resultBin, 2)
-        result = decimal_to_any(resultDec, sysRes)
+        resultAny = decimal_to_any(resultDec, sysRes)
 
-        res.set(result)
+        result['text'] = resultAny
 
     elif op.get() == 2:  # radio 2 = mult
         digits = 0
@@ -425,7 +431,7 @@ def action():
 
         multResultAny = decimal_to_any(multResultDec, sysRes)
 
-        res.set(multResultAny)
+        result['text'] = multResultAny
 
 
     elif op.get() == 3:  # radio 3 = division
@@ -472,7 +478,7 @@ mult.place(y=260, x=55)
 division.place(y=290, x=55)
 
 res = StringVar()
-result = Label(textvariable=res, bd=4, bg='#67ACB6', font='arial 15')
+result = Label(text='Ответ', bd=4, bg='#67ACB6', font='arial 15')
 result.place(height=65, width=630, y=400, x=150)
 
 resScale = Scale(orient=HORIZONTAL, length=110, from_=2, to=16, tickinterval=14, resolution=1, bg='#67ACB6',
@@ -482,6 +488,11 @@ resScale.place(width=110, y=400, x=15)
 btn = Button(text='Вычислить', bg='#DCDCDC', font='Arial 25 bold', activebackground='#DCDCDC', fg='#222222',
              bd=3, command=action)
 btn.place(height=100, width=200, y=210,x=300)
+
+repeat = IntVar()
+checkBut = Checkbutton(text="Повторение приминения операций к результату", variable=repeat, bg='#67ACB6', onvalue=1, offvalue=0,
+                       activebackground='#67ACB6', font='Arial 12 bold', fg='#222222')
+checkBut.place(x=360, y=350)
 
 
 root.mainloop()
