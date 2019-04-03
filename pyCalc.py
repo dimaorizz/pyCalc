@@ -99,6 +99,53 @@ def decimal_to_any(in_decimal, basis_of_output):
     return answer
 
 
+def sum(num1, num2, flag=0):
+    res = list()
+    length = len(num1)
+    trans = 0
+
+    for i in range(length - 1, -1, -1):
+        if int(num1[i]) + int(num2[i]) == 0:
+            res.append('0')
+        elif int(num1[i]) + int(num2[i]) == 1:
+            res.append('1')
+        elif int(num1[i]) + int(num2[i]) == 2:
+            res.append('0')
+            if i > 0:
+                num1 = num1[:i-1]+str(int(num1[i-1])+1)+num1[i:]
+            elif i == 0:
+                res.append('1')
+        elif int(num1[i]) + int(num2[i]) == 3:
+            res.append('1')
+            if i > 0:
+                num1 = num1[:i-1]+str(int(num1[i-1])+1)+num1[i:]
+            elif i == 0:
+                res.append('1')
+    res.reverse()
+
+    if len(res) > length:
+        trans = res[0]
+    if flag == 1:
+        return trans
+
+    res = ''.join(res)
+
+    return res
+
+
+def move(result, flag_trans):
+    result_list = list(result)
+    moved = list()
+    if flag_trans == 1:
+        moved.append('1')
+    elif flag_trans == 0:
+        moved.append('0')
+    for i in result_list:
+        moved.append(i)
+    moved.pop()
+    return ''.join(moved)
+
+
 def dir_to_bin(direct):
     flag = 0 # флаг знака
     i = 0 # счетчик для создания среза
@@ -236,6 +283,35 @@ def addictonal_sum (num_add1, num_add2):
         return res
 
 
+def multiply(num1_dir, num2_dir, digits):
+    flag_sign = 0
+
+    if num1_dir[0] == num2_dir[0]:
+        flag_sign += 1
+    if num1_dir[0] == '1':
+        num1_dir = '0' + num1_dir[1:]
+    if num2_dir[0] == '1':
+        num2_dir = '0' + num2_dir[1:]
+
+    mult_res = to_direct('0', digits * 2)
+    num2_dir = list(num2_dir)
+    num2_dir.reverse()
+    num2_dir = ''.join(num2_dir)
+
+    for el in num2_dir:
+        flag_add = 0
+        if el == '1':
+            flag_add = sum(mult_res[:digits], num1_dir, 1)
+            mult_res = sum(mult_res[:digits], num1_dir) + mult_res[digits:]
+
+        mult_res = move(mult_res, flag_add)
+
+    if flag_sign == 0:
+        mult_res = '1' + mult_res[1:]
+
+    return mult_res
+
+
 def action():
     sys1 = sys1Scale.get()          #int
     sys2 = sys2Scale.get()          #int
@@ -285,9 +361,73 @@ def action():
         res.set(result)
 
     elif op.get() == 1:  # radio 1 = minus
-        print('minus')
+        digits = 0
+        firstNumDec = any_to_decimal(firstInp, sys1)
+        secondNumDec = any_to_decimal(secondInp, sys2)
+        firstNumBin = decimal_to_any(firstNumDec, 2)
+        secondNumBin = decimal_to_any(secondNumDec, 2)
+
+        if firstNumDec < 2 ** 7 - 1 and firstNumDec > -2 ** 7 and secondNumDec < 2 ** 7 - 1 and secondNumDec > -2 ** 7:
+            digits = 8
+        elif firstNumDec < 2 ** 15 - 1 and firstNumDec > -2 ** 15 and secondNumDec < 2 ** 15 - 1 and secondNumDec > -2 ** 15:
+            digits = 16
+        elif firstNumDec < 2 ** 31 - 1 and firstNumDec > -2 ** 31 and secondNumDec < 2 ** 31 - 1 and secondNumDec > -2 ** 31:
+            digits = 32
+        else:
+            mb.showerror('Ошибка!', 'Разрядность одного из чисел выше 32')
+            return
+
+        firstNumDir = to_direct(firstNumBin, digits)
+        secondNumDir = to_direct(secondNumBin, digits)
+
+        if secondNumDir[0] == '1':
+            secondNumDir = '0' + secondNumDir[1:]
+        elif secondNumDir[0] == '0':
+            secondNumDir = '1' + secondNumDir[1:]
+
+        firstNumRev = to_reversed(firstNumDir)
+        secondNumRev = to_reversed(secondNumDir)
+        firstNumAddict = addictional(firstNumRev)
+        secondNumAddict = addictional(secondNumRev)
+
+        resultAddict = addictonal_sum(firstNumAddict, secondNumAddict)
+
+        resultDir = addictional(to_reversed(resultAddict))
+        resultBin = dir_to_bin(resultDir)
+        resultDec = any_to_decimal(resultBin, 2)
+        result = decimal_to_any(resultDec, sysRes)
+
+        res.set(result)
+
     elif op.get() == 2:  # radio 2 = mult
-        print('mult')
+        digits = 0
+        firstNumDec = any_to_decimal(firstInp, sys1)
+        secondNumDec = any_to_decimal(secondInp, sys2)
+
+        if firstNumDec < 2 ** 7 - 1 and firstNumDec > -2 ** 7 and secondNumDec < 2 ** 7 - 1 and secondNumDec > -2 ** 7:
+            digits = 8
+        elif firstNumDec < 2 ** 15 - 1 and firstNumDec > -2 ** 15 and secondNumDec < 2 ** 15 - 1 and secondNumDec > -2 ** 15:
+            digits = 16
+        elif firstNumDec < 2 ** 31 - 1 and firstNumDec > -2 ** 31 and secondNumDec < 2 ** 31 - 1 and secondNumDec > -2 ** 31:
+            digits = 32
+        else:
+            mb.showerror('Ошибка!', 'Разрядность одного из чисел выше 32')
+            return
+
+        firstNumBin = decimal_to_any(firstNumDec, 2)
+        secondNumBin = decimal_to_any(secondNumDec, 2)
+        firstNumDir = to_direct(firstNumBin, digits)
+        secondNumDir = to_direct(secondNumBin, digits)
+
+        multResult = multiply(firstNumDir, secondNumDir, digits)
+        multResultBin = dir_to_bin(multResult)
+        multResultDec = any_to_decimal(multResultBin, 2)
+
+        multResultAny = decimal_to_any(multResultDec, sysRes)
+
+        res.set(multResultAny)
+
+
     elif op.get() == 3:  # radio 3 = division
         print('division')
 
