@@ -133,6 +133,83 @@ def sum(num1, num2, flag=0):
     return res
 
 
+def bin_to_dec (bin):
+    flag = 0
+    if bin[0] == '-':
+        bin = bin[1:]
+        flag = 1
+    size = range(len(bin) - 1, -1, -1)
+    decimal = 0
+    i = 0
+
+    for el in bin:
+        decimal += int(el) * pow(2, size[i])
+        i += 1
+    if flag == 1:
+        decimal = int('-' + str(decimal))
+    return decimal
+
+
+def move_rem(rem):
+    sign = rem[0]
+    rem = rem[1:]
+    rem = list(rem)
+    rem.pop(0)
+    rem.append('0')
+    rem = ''.join(rem)
+    rem = sign + rem
+
+    return rem
+
+
+def divide (num1, num2, minus_num2, k, sample, flag=0):
+    div_res = list()
+    rem = addictonal_sum(num1, minus_num2)
+    #A-B
+    if rem[0] == '0':
+        div_res.append('1')
+    elif rem[0] == '1':
+        div_res.append('0')
+
+    #chislo znaka zapis v ostatok
+    i = 1
+    while i <= k:
+        if bin_to_dec(rem) == 0:
+            rem = '0'
+            length_res = len(div_res)
+            for c in range(k + 1 - length_res):
+                div_res.append('0')
+            break
+
+        rem = move_rem(rem)
+        i += 1
+        #shift ostatka vlevo na 1 (bez znakovogo)
+        if rem[0] == '1':
+            rem = addictonal_sum(rem, num2)
+        else:
+            rem = addictonal_sum(rem, minus_num2)
+        #if ostatok[0] == '1' : ostatok + B ; else : ostatok - B
+        if rem[0] == '0':
+            div_res.append('1')
+        else:
+            div_res.append('0')
+        if abs(bin_to_dec(dir_to_bin(addictional(to_reversed(rem))))) < abs(bin_to_dec(dir_to_bin(sample))):
+            length_res = len(div_res)
+            for c in range(k+1-length_res):
+                div_res.append('0')
+            break
+
+        #chislo znaka zapis v ostatok
+    if flag == 1:
+        if dir_to_bin(rem) == '0':
+            return '0'
+        return rem
+    elif flag == 2:
+        return i-1
+    return ''.join(div_res)
+
+
+
 def move(result, flag_trans):
     result_list = list(result)
     moved = list()
@@ -144,6 +221,30 @@ def move(result, flag_trans):
         moved.append(i)
     moved.pop()
     return ''.join(moved)
+
+
+def shift(num1, num2, flag=0):
+    zeros1 = zeros2 = 0
+    #i = j = 0
+    for i in num1:
+        if i == '0':
+            zeros1 += 1
+        else:
+            break
+
+    for j in num2:
+        if j == '0':
+            zeros2 += 1
+        else:
+            break
+
+    num2 = list(num2)
+    steps = zeros2 - zeros1
+    if flag == 1:
+        return steps
+    for i in range(steps):
+        num2.append(num2.pop(0))
+    return ''.join(num2)
 
 
 def dir_to_bin(direct):
@@ -201,27 +302,19 @@ def to_reversed (direct):
         return direct
 
 
-def addictional (in_reverse):
-    i = 1
-    result = list()
-    if in_reverse[0] == '1':
-        while i <= len(in_reverse):
-            if int(in_reverse[-i]) + 1 == 2:
-                result.append('0')
-                i += 1
-            elif int(in_reverse[-i]) + 1 == 1:
-                result.append('1')
-                i += 1
+def addictional(rev):
+    if rev[0] == '1':
+        addict = list()
+        for el in range(1, len(rev)):
+            if int(rev[-el]) + 1 == 2:
+                addict.insert(0, '0')
+            else:
+                addict.insert(0, '1')
                 break
-        if i < len(in_reverse):
-            for el in range(len(in_reverse) - i + 1):
-                result.append(in_reverse[-i])
-                i += 1
-        result.reverse()
-
-        return ''.join(result)
-    else:
-        return in_reverse
+        addict = ''.join(addict)
+        addict = rev[:len(rev) - len(addict)] + addict
+        return addict
+    return rev
 
 def addictonal_sum (num_add1, num_add2):
     temp1 = num_add1
@@ -390,6 +483,8 @@ def action():
             secondNumDir = '0' + secondNumDir[1:]
         elif secondNumDir[0] == '0':
             secondNumDir = '1' + secondNumDir[1:]
+        if secondNumDec == 0:
+            secondNumDir = to_direct('0', digits)
 
         firstNumRev = to_reversed(firstNumDir)
         secondNumRev = to_reversed(secondNumDir)
@@ -435,7 +530,45 @@ def action():
 
 
     elif op.get() == 3:  # radio 3 = division
-        print('division')
+        digits = 0
+        firstNumDec = any_to_decimal(firstInp, sys1)
+        secondNumDec = any_to_decimal(secondInp, sys2)
+
+        if secondNumDec == 0:
+            mb.showerror('Ошибка!', 'Деление на ноль запрещено законом!')
+
+        flag_sign = 0
+
+        if (firstNumDec < 0 and secondNumDec < 0) or (firstNumDec > 0 and secondNumDec > 0):
+            flag_sign += 1
+
+        if firstNumDec < 2 ** 7 - 1 and firstNumDec > -2 ** 7 and secondNumDec < 2 ** 7 - 1 and secondNumDec > -2 ** 7:
+            digits = 8
+        elif firstNumDec < 2 ** 15 - 1 and firstNumDec > -2 ** 15 and secondNumDec < 2 ** 15 - 1 and secondNumDec > -2 ** 15:
+            digits = 16
+        elif firstNumDec < 2 ** 31 - 1 and firstNumDec > -2 ** 31 and secondNumDec < 2 ** 31 - 1 and secondNumDec > -2 ** 31:
+            digits = 32
+        else:
+            mb.showerror('Ошибка!', 'Разрядность одного из чисел выше 32')
+            return
+        firstNumDec = abs(firstNumDec)
+        secondNumDec = abs(secondNumDec)
+        firstNumBin = decimal_to_any(firstNumDec, 2)
+        secondNumBin = decimal_to_any(secondNumDec, 2)
+        firstNumDir = to_direct(firstNumBin, digits)
+        secondNumDir = to_direct(secondNumBin, digits)
+
+        ShiftNum = shift(firstNumDir, secondNumDir, 1)
+        SecondNumShifted = shift(firstNumDir, secondNumDir)
+        # shift (A, B)
+        SecondNumRev = to_reversed('1' + SecondNumShifted[1:])
+        SecondNumAddict = addictional(SecondNumRev)
+        divRes = divide(firstNumDir, SecondNumShifted, SecondNumAddict, ShiftNum, secondNumDir)
+        divResDec = any_to_decimal(divRes, 2)
+        divResAny = decimal_to_any(divResDec, sysRes)
+
+        result['text'] = divResAny
+
 
 
 root = Tk()
@@ -443,33 +576,33 @@ root = Tk()
 root.title('Calc')
 root.resizable(height=False, width=False)
 root.geometry('800x500+500+100')
-root.configure(background='#67ACB6')
+root.configure(background='#DEB887')
 
 txt1 = StringVar()
-num1 = Entry(textvariable=txt1, bd=4, bg='#5AD05E', font='arial 15')
+num1 = Entry(textvariable=txt1, bd=4, bg='#FFEFD5', font='arial 15')
 num1.place(height=65, width=630, y=10, x=150)
 
-sys1Scale = Scale(orient=HORIZONTAL, length=110, from_=2, to=16, tickinterval=14, resolution=1, bg='#67ACB6',
-                 font='arial 12 bold', fg='#222222', activebackground='#FFAB00', bd=0, highlightthickness=0)
+sys1Scale = Scale(orient=HORIZONTAL, length=110, from_=2, to=16, tickinterval=14, resolution=1, bg='#DEB887',
+                 font='arial 12 bold', fg='#222222', activebackground='#F0E68C', bd=0, highlightthickness=0)
 sys1Scale.place(width=110, y=5, x=15)
 
 txt2 = StringVar()
-num2 = Entry(textvariable=txt2, bd=4, bg='#5AD05E', font='arial 15')
+num2 = Entry(textvariable=txt2, bd=4, bg='#FFEFD5', font='arial 15')
 num2.place(height=65, width=630, y=90, x=150)
 
-sys2Scale = Scale(orient=HORIZONTAL, length=110, from_=2, to=16, tickinterval=14, resolution=1, bg='#67ACB6',
-                 font='arial 12 bold', fg='#222222', activebackground='#FFAB00', bd=0, highlightthickness=0)
+sys2Scale = Scale(orient=HORIZONTAL, length=110, from_=2, to=16, tickinterval=14, resolution=1, bg='#DEB887',
+                 font='arial 12 bold', fg='#222222', activebackground='#F0E68C', bd=0, highlightthickness=0)
 sys2Scale.place(width=110, y=90, x=15)
 
 op = IntVar()
 op.set(0)
-plus = Radiobutton(text='Сложить', variable=op, value=0, activebackground='#67ACB6', bg='#67ACB6',
+plus = Radiobutton(text='Сложить', variable=op, value=0, activebackground='#DEB887', bg='#DEB887',
                    font='arial 12 bold', fg='#222222', overrelief='groove')
-minus = Radiobutton(text='Вычесть', variable=op, value=1, activebackground='#67ACB6', bg='#67ACB6',
+minus = Radiobutton(text='Вычесть', variable=op, value=1, activebackground='#DEB887', bg='#DEB887',
                     font='arial 12 bold', fg='#222222', overrelief='groove')
-mult = Radiobutton(text='Умножить', variable=op, value=2, activebackground='#67ACB6', bg='#67ACB6',
+mult = Radiobutton(text='Умножить', variable=op, value=2, activebackground='#DEB887', bg='#DEB887',
                    font='arial 12 bold', fg='#222222', overrelief='groove')
-division = Radiobutton(text='Разделить', variable=op, value=3, activebackground='#67ACB6', bg='#67ACB6',
+division = Radiobutton(text='Разделить', variable=op, value=3, activebackground='#DEB887', bg='#DEB887',
                        font='arial 12 bold', fg='#222222', overrelief='groove')
 
 plus.place(y=200,x=55)
@@ -478,20 +611,20 @@ mult.place(y=260, x=55)
 division.place(y=290, x=55)
 
 res = StringVar()
-result = Label(text='Ответ', bd=4, bg='#67ACB6', font='arial 15')
+result = Label(text='Ответ', bd=4, bg='#DEB887', font='arial 15')
 result.place(height=65, width=630, y=400, x=150)
 
-resScale = Scale(orient=HORIZONTAL, length=110, from_=2, to=16, tickinterval=14, resolution=1, bg='#67ACB6',
-                 font='arial 12 bold', fg='#222222', activebackground='#FFAB00', bd=0, highlightthickness=0)
+resScale = Scale(orient=HORIZONTAL, length=110, from_=2, to=16, tickinterval=14, resolution=1, bg='#DEB887',
+                 font='arial 12 bold', fg='#222222', activebackground='#F0E68C', bd=0, highlightthickness=0)
 resScale.place(width=110, y=400, x=15)
 
-btn = Button(text='Вычислить', bg='#DCDCDC', font='Arial 25 bold', activebackground='#DCDCDC', fg='#222222',
+btn = Button(text='Вычислить', bg='#FFEFD5', font='Arial 25 bold', activebackground='#F0FFFF', fg='#222222',
              bd=3, command=action)
 btn.place(height=100, width=200, y=210,x=300)
 
 repeat = IntVar()
-checkBut = Checkbutton(text="Повторение приминения операций к результату", variable=repeat, bg='#67ACB6', onvalue=1, offvalue=0,
-                       activebackground='#67ACB6', font='Arial 12 bold', fg='#222222')
+checkBut = Checkbutton(text="Повторение приминения операций к результату", variable=repeat, bg='#DEB887', onvalue=1, offvalue=0,
+                       activebackground='#DEB887', font='Arial 12 bold', fg='#222222')
 checkBut.place(x=360, y=350)
 
 
