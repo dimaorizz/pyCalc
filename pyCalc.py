@@ -162,50 +162,37 @@ def move_rem(rem):
     return rem
 
 
-def divide (num1, num2, minus_num2, k, sample, flag=0):
+def move_right(strng, steps):
+    strng = list(strng)
+    for i in range(steps):
+        strng.insert(0, strng.pop())
+    return ''.join(strng)
+
+
+def divide(numDir1, numShifted2, minusNumAddict2, k, flag=0):
     div_res = list()
-    rem = addictonal_sum(num1, minus_num2)
-    #A-B
-    if rem[0] == '0':
-        div_res.append('1')
-    elif rem[0] == '1':
+    rem = addictonal_sum(numDir1, minusNumAddict2)
+    if rem[0] == '1':
         div_res.append('0')
-
-    #chislo znaka zapis v ostatok
-    i = 1
-    while i <= k:
-        if bin_to_dec(rem) == 0:
-            rem = '0'
-            length_res = len(div_res)
-            for c in range(k + 1 - length_res):
-                div_res.append('0')
-            break
-
+    else:
+        div_res.append('1')
+    i = 0
+    while i < k:
         rem = move_rem(rem)
         i += 1
-        #shift ostatka vlevo na 1 (bez znakovogo)
         if rem[0] == '1':
-            rem = addictonal_sum(rem, num2)
+            rem = addictonal_sum(rem, numShifted2)
         else:
-            rem = addictonal_sum(rem, minus_num2)
-        #if ostatok[0] == '1' : ostatok + B ; else : ostatok - B
-        if rem[0] == '0':
-            div_res.append('1')
-        else:
+            rem = addictonal_sum(rem, minusNumAddict2)
+        if rem[0] == '1':
             div_res.append('0')
-        if abs(bin_to_dec(dir_to_bin(addictional(to_reversed(rem))))) < abs(bin_to_dec(dir_to_bin(sample))):
-            length_res = len(div_res)
-            for c in range(k+1-length_res):
-                div_res.append('0')
-            break
-
-        #chislo znaka zapis v ostatok
+        else:
+            div_res.append('1')
     if flag == 1:
-        if dir_to_bin(rem) == '0':
-            return '0'
+        if rem[0] == '1':
+            rem = addictonal_sum(rem, numShifted2)
+        rem = move_right(rem, k)
         return rem
-    elif flag == 2:
-        return i-1
     return ''.join(div_res)
 
 
@@ -563,7 +550,7 @@ def action():
         # shift (A, B)
         SecondNumRev = to_reversed('1' + SecondNumShifted[1:])
         SecondNumAddict = addictional(SecondNumRev)
-        divRes = divide(firstNumDir, SecondNumShifted, SecondNumAddict, ShiftNum, secondNumDir)
+        divRes = divide(firstNumDir, SecondNumShifted, SecondNumAddict, ShiftNum)
         divResDec = any_to_decimal(divRes, 2)
         divResAny = decimal_to_any(divResDec, sysRes)
 
