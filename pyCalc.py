@@ -522,18 +522,18 @@ def action():
         secondNumDec = any_to_decimal(secondInp, sys2)
 
         if secondNumDec == 0:
-            mb.showerror('Ошибка!', 'Деление на ноль запрещено законом!')
+            mb.showerror('Ошибка!', 'Деление на ноль запрещено!')
 
         flag_sign = 0
 
         if (firstNumDec < 0 and secondNumDec < 0) or (firstNumDec > 0 and secondNumDec > 0):
             flag_sign += 1
 
-        if firstNumDec < 2 ** 7 - 1 and firstNumDec > -2 ** 7 and secondNumDec < 2 ** 7 - 1 and secondNumDec > -2 ** 7:
+        if firstNumDec < 2 ** 6 - 1 and firstNumDec > -2 ** 6 and secondNumDec < 2 ** 6 - 1 and secondNumDec > -2 ** 6:
             digits = 8
-        elif firstNumDec < 2 ** 15 - 1 and firstNumDec > -2 ** 15 and secondNumDec < 2 ** 15 - 1 and secondNumDec > -2 ** 15:
+        elif firstNumDec < 2 ** 14 - 1 and firstNumDec > -2 ** 14 and secondNumDec < 2 ** 14 - 1 and secondNumDec > -2 ** 14:
             digits = 16
-        elif firstNumDec < 2 ** 31 - 1 and firstNumDec > -2 ** 31 and secondNumDec < 2 ** 31 - 1 and secondNumDec > -2 ** 31:
+        elif firstNumDec < 2 ** 30 - 1 and firstNumDec > -2 ** 30 and secondNumDec < 2 ** 30 - 1 and secondNumDec > -2 ** 30:
             digits = 32
         else:
             mb.showerror('Ошибка!', 'Разрядность одного из чисел выше 32')
@@ -553,6 +553,9 @@ def action():
         divRes = divide(firstNumDir, SecondNumShifted, SecondNumAddict, ShiftNum)
         divResDec = any_to_decimal(divRes, 2)
         divResAny = decimal_to_any(divResDec, sysRes)
+
+        if flag_sign == 0 and firstNumDec != 0:
+            divResAny = '-' + divResAny
 
         result['text'] = divResAny
 
